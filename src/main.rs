@@ -161,6 +161,20 @@ fn search_path(
     Ok(path)
 }
 
+fn print_map(map: &str) {
+    let mut ch = map.chars();
+
+    loop {
+        let c = ch.next();
+        match c {
+            Some('#') => print!("\x1b[30;47m # "),
+            Some('-') => print!("\x1b[30;44m - "),
+            None => return,
+            _ => println!("\x1b[0m"),
+        }
+    }
+}
+
 fn print_path(
     map: &[Vec<Tile>],
     path: Vec<(usize, usize)>,
@@ -195,7 +209,7 @@ fn pathfinder() -> Result<(), Box<dyn std::error::Error>> {
 
     match read_map(&path) {
         Ok(map) => {
-            println!("{map}");
+            print_map(&map);
             let start: (i32, i32) = (
                 read_input("Enter coordinates of the starting point:\n\tx: ").parse()?,
                 read_input("\ty: ").parse()?,
