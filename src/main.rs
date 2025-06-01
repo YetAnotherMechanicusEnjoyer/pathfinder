@@ -1,4 +1,5 @@
 mod structs;
+use std::collections::HashSet;
 use std::fs::{self};
 use std::io::{self, Write};
 use structs::{CreationError, Node, Tile};
@@ -37,10 +38,10 @@ fn line_to_vec(
         let n = Node::new((g, h, f))?;
         match ch.next() {
             Some('#') => {
-                v.push(Tile::new(false, n));
+                v.push(Tile::new(x, y, false, n)?);
             }
             Some('-') => {
-                v.push(Tile::new(true, n));
+                v.push(Tile::new(x, y, true, n)?);
             }
             None => {
                 return Ok(v);
@@ -65,28 +66,166 @@ fn init_map(
     Ok(map)
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let path = read_input("Enter map file path: ");
-    let start: (i32, i32) = (
-        read_input("Enter coordinates of the starting point:\n\tx: ").parse()?,
-        read_input("\ty: ").parse()?,
-    );
-    let end: (i32, i32) = (
-        read_input("Enter coordinates of the ending point:\n\tx: ").parse()?,
-        read_input("\ty: ").parse()?,
-    );
-    match read_map(&path) {
-        Ok(map) => match init_map(&map, start, end) {
-            Ok(m) => {
-                let map = m;
-                map.iter().for_each(|v| {
-                    v.iter().for_each(|tile| println!("{}", tile));
-                    println!();
-                });
+fn get_tile(map: &[Vec<Tile>], coord: (i32, i32)) -> Option<&Tile> {
+    let (x, y) = (coord.0 as usize, coord.1 as usize);
+
+    map.get(y)?.get(x)
+}
+
+fn next_tile<'a>(
+    map: &'a [Vec<Tile>],
+    known_map: &mut Vec<&'a Tile>,
+    visited: &mut HashSet<(usize, usize)>,
+    tile: &'a Tile,
+) -> Option<&'a Tile> {
+    let (x, y) = tile.get_coord();
+    let mut neighbors = Vec::new();
+
+    for (ax, ay) in [(0, -1), (0, 1), (-1, 0), (1, 0)] {
+        let (nx, ny) = (x as i32 + ax, y as i32 + ay);
+
+        if visited.contains(&(nx as usize, ny as usize)) {
+            continue;
+        }
+        if let Some(neighbor) = get_tile(map, (nx, ny)) {
+            if neighbor.get_path() {
+                neighbors.push(neighbor);
+                known_map.push(neighbor);
             }
-            Err(e) => println!("Error {e}"),
-        },
-        Err(err) => println!("Error: {err}"),
+        }
+    }
+    neighbors.into_iter().min_by_key(|tile| {
+        let f = tile.get_node().get_info().2;
+        let h = tile.get_node().get_info().1;
+        (f, h)
+    })
+}
+
+fn is_neighbor(tile1: (usize, usize), tile2: (usize, usize)) -> bool {
+    (tile1.0 == tile2.0 && (tile1.1 as i32 - tile2.1 as i32).abs() == 1)
+        || (tile1.1 == tile2.1 && (tile1.0 as i32 - tile2.0 as i32).abs() == 1)
+}
+
+fn search_path(
+    map: &[Vec<Tile>],
+    start: (i32, i32),
+    end: (i32, i32),
+) -> Result<Vec<(usize, usize)>, ()> {
+    let start = get_tile(map, start).expect("Error: Invalid starting coordinates.");
+    let end = get_tile(map, end).expect("Error: Invalid ending coordinates.");
+    let mut next = start;
+    let mut known_tiles: Vec<&Tile> = Vec::new();
+    let mut visited: HashSet<(usize, usize)> = HashSet::new();
+    let mut path: Vec<(usize, usize)> = vec![start.get_coord()];
+
+    visited.insert(next.get_coord());
+    while next.get_coord() != end.get_coord() {
+        next = match next_tile(map, &mut known_tiles, &mut visited, next) {
+            Some(tile) => {
+                while path.last().is_some() && !is_neighbor(*path.last().unwrap(), tile.get_coord())
+                {
+                    path.pop();
+                }
+                visited.insert(tile.get_coord());
+                path.push(tile.get_coord());
+                tile
+            }
+            None => {
+                match known_tiles
+                    .clone()
+                    .into_iter()
+                    .filter(|tile| !visited.contains(&tile.get_coord()))
+                    .min_by_key(|tile| {
+                        let f = tile.get_node().get_info().2;
+                        let h = tile.get_node().get_info().1;
+                        (h, f)
+                    }) {
+                    Some(t) => {
+                        while path.last().is_some()
+                            && !is_neighbor(*path.last().unwrap(), t.get_coord())
+                        {
+                            path.pop();
+                        }
+                        visited.insert(t.get_coord());
+                        path.push(t.get_coord());
+                        t
+                    }
+                    None => {
+                        println!("No valid path found.");
+                        return Err(());
+                    }
+                }
+            }
+        };
+    }
+    Ok(path)
+}
+
+fn print_path(
+    map: &[Vec<Tile>],
+    path: Vec<(usize, usize)>,
+    start: (usize, usize),
+    end: (usize, usize),
+) {
+    for y in 0..map.len() {
+        for x in 0..map.get(y).unwrap().len() {
+            if let Some(tile) = get_tile(map, (x as i32, y as i32)) {
+                if start == tile.get_coord() {
+                    print!("\x1b[30;43m S ");
+                } else if end == tile.get_coord() {
+                    print!("\x1b[30;41m E ");
+                } else if path.contains(&tile.get_coord()) {
+                    print!("\x1b[30;42m + ");
+                } else if tile.get_path() {
+                    print!("\x1b[30;44m - ");
+                } else {
+                    print!("\x1b[30;47m # ");
+                }
+            } else {
+                println!("\nError: print_path");
+                return;
+            }
+        }
+        println!("\x1b[0m");
+    }
+}
+
+fn pathfinder() -> Result<(), Box<dyn std::error::Error>> {
+    let path = read_input("Enter map file path: ");
+
+    match read_map(&path) {
+        Ok(map) => {
+            println!("{map}");
+            let start: (i32, i32) = (
+                read_input("Enter coordinates of the starting point:\n\tx: ").parse()?,
+                read_input("\ty: ").parse()?,
+            );
+            let end: (i32, i32) = (
+                read_input("Enter coordinates of the ending point:\n\tx: ").parse()?,
+                read_input("\ty: ").parse()?,
+            );
+
+            match init_map(&map, start, end) {
+                Ok(m) => {
+                    let tile_map = m;
+                    match search_path(&tile_map, start, end) {
+                        Ok(path) => print_path(
+                            &tile_map,
+                            path,
+                            (start.0 as usize, start.1 as usize),
+                            (end.0 as usize, end.1 as usize),
+                        ),
+                        Err(()) => return Ok(()),
+                    }
+                }
+                Err(e) => panic!("Error {e}"),
+            }
+        }
+        Err(err) => panic!("Error: {err}"),
     }
     Ok(())
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    pathfinder()
 }
