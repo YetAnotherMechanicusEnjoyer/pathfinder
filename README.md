@@ -1,6 +1,6 @@
 # Pathfinder
 
-<img src="https://media.discordapp.net/attachments/451371722428383236/1378617969378197616/image.png?ex=683d4189&is=683bf009&hm=374e64aa7e275a29a38b3d554eae90acc2016a90e54381eeb65ec3415801f8b2&=&format=webp&quality=lossless" alt="exemple" />
+<img src="https://cdn.discordapp.com/attachments/451371722428383236/1378619133284847667/image.png?ex=683d429e&is=683bf11e&hm=d18afd17dd230fa82403ebd3d052ec2038fd90002177cfd7cc958356de3f233d&" alt="exemple" />
 
 ## About
 >
