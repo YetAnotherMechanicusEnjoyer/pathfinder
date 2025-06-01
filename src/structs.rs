@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Node {
     g: u32,
     h: u32,
@@ -35,30 +35,53 @@ impl Node {
             })
         }
     }
+    pub fn get_info(&self) -> (u32, u32, i32) {
+        (self.g, self.h, self.f)
+    }
 }
 
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let desc = format!("g: {}, h: {}, f: {}", self.g, self.h, self.f);
+        let desc = format!("({}, {}, {})", self.g, self.h, self.f);
         f.write_str(&desc)
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Tile {
+    x: usize,
+    y: usize,
     path: bool,
     node: Node,
 }
 
 impl Tile {
-    pub fn new(path: bool, node: Node) -> Self {
-        Self { path, node }
+    pub fn new(x: i32, y: i32, path: bool, node: Node) -> Result<Self, CreationError> {
+        if x < 0 || y < 0 {
+            Err(CreationError::Negative)
+        } else {
+            Ok(Self {
+                x: x as usize,
+                y: y as usize,
+                path,
+                node,
+            })
+        }
+    }
+    pub fn get_coord(&self) -> (usize, usize) {
+        (self.x, self.y)
+    }
+    pub fn get_path(&self) -> bool {
+        self.path
+    }
+    pub fn get_node(&self) -> Node {
+        self.node
     }
 }
 
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let desc = format!("({}, {})", self.path, self.node);
+        let desc = format!("({}, {}, {}, {})", self.x, self.y, self.path, self.node);
         f.write_str(&desc)
     }
 }
