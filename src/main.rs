@@ -167,8 +167,8 @@ fn print_map(map: &str) {
     loop {
         let c = ch.next();
         match c {
-            Some('#') => print!("\x1b[30;47m # "),
-            Some('-') => print!("\x1b[30;44m - "),
+            Some('#') => print!("\x1b[30;47m  "),
+            Some('-') => print!("\x1b[30;44m  "),
             None => return,
             _ => println!("\x1b[0m"),
         }
@@ -185,15 +185,15 @@ fn print_path(
         for x in 0..map.get(y).unwrap().len() {
             if let Some(tile) = get_tile(map, (x as i32, y as i32)) {
                 if start == tile.get_coord() {
-                    print!("\x1b[30;43m S ");
+                    print!("\x1b[30;43m  ");
                 } else if end == tile.get_coord() {
-                    print!("\x1b[30;41m E ");
+                    print!("\x1b[30;41m  ");
                 } else if path.contains(&tile.get_coord()) {
-                    print!("\x1b[30;42m + ");
+                    print!("\x1b[30;42m  ");
                 } else if tile.get_path() {
-                    print!("\x1b[30;44m - ");
+                    print!("\x1b[30;44m  ");
                 } else {
-                    print!("\x1b[30;47m # ");
+                    print!("\x1b[30;47m  ");
                 }
             } else {
                 println!("\nError: print_path");

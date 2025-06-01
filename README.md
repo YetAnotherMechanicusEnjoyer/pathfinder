@@ -1,7 +1,9 @@
 # Pathfinder
-<img src="https://cdn.discordapp.com/attachments/451371722428383236/1378609503745867837/image.png?ex=683d39a7&is=683be827&hm=733c86d0ffe6113473cc5703bf549d7b0780ddfb97232e1112bd9b0de1d84798&" />
+
+<img src="https://media.discordapp.net/attachments/451371722428383236/1378617969378197616/image.png?ex=683d4189&is=683bf009&hm=374e64aa7e275a29a38b3d554eae90acc2016a90e54381eeb65ec3415801f8b2&=&format=webp&quality=lossless" alt="exemple" />
 
 ## About
+>
 > [!NOTE]
 > Just me doing my first project in Rust using A* algorithm.
 >
