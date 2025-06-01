@@ -37,6 +37,13 @@ impl Node {
     }
 }
 
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let desc = format!("g: {}, h: {}, f: {}", self.g, self.h, self.f);
+        f.write_str(&desc)
+    }
+}
+
 #[derive(Debug)]
 pub struct Tile {
     path: bool,
