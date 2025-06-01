@@ -58,7 +58,7 @@ impl Tile {
 
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let desc = format!("({}, {:?})", self.path, self.node);
+        let desc = format!("({}, {})", self.path, self.node);
         f.write_str(&desc)
     }
 }

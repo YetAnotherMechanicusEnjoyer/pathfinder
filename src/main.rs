@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(m) => {
                 let map = m;
                 map.iter().for_each(|v| {
-                    v.iter().for_each(|tile| println!("{}\n", tile));
+                    v.iter().for_each(|tile| println!("{}", tile));
                     println!();
                 });
             }
