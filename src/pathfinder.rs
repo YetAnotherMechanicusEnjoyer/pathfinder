@@ -162,17 +162,48 @@ fn search_path(
 }
 
 fn print_map(map: &str) {
-    let mut ch = map.chars();
+    let mut v: Vec<&str> = Vec::new();
 
-    loop {
-        let c = ch.next();
+    for c in map.chars() {
         match c {
-            Some('#') => print!("\x1b[30;47m  "),
-            Some('-') => print!("\x1b[30;44m  "),
-            None => return,
-            _ => println!("\x1b[0m"),
+            '#' => v.push("\x1b[30;47m   "),
+            '-' => v.push("\x1b[30;44m   "),
+            _ => v.push("\x1b[0m\n"),
         }
     }
+    v.remove(v.len() - 1);
+    let line: Vec<&str> = v
+        .split_inclusive(|&s| s == "\x1b[0m\n")
+        .next()
+        .unwrap_or(&[])
+        .to_vec();
+    print!("   ");
+    for x in 0..line.len() - 1 {
+        if x < 10 {
+            print!(" 0{x}");
+        } else if x < 100 {
+            print!(" {x}");
+        } else {
+            print!("{x}");
+        }
+    }
+    println!();
+    let mut y: usize = 0;
+    print!("00 ");
+    for s in v {
+        print!("{s}");
+        if s == "\x1b[0m\n" {
+            y += 1;
+            if y < 10 {
+                print!("0{y} ");
+            } else if y < 100 {
+                print!("{y} ");
+            } else {
+                print!("{y}");
+            }
+        }
+    }
+    println!("\x1b[0m");
 }
 
 fn print_path(
@@ -181,19 +212,37 @@ fn print_path(
     start: (usize, usize),
     end: (usize, usize),
 ) {
-    for y in 0..map.len() {
+    print!("   ");
+    for x in 0..map[0].len() {
+        if x < 10 {
+            print!(" 0{x}");
+        } else if x < 100 {
+            print!(" {x}");
+        } else {
+            print!("{x}");
+        }
+    }
+    println!();
+    for y in 0..map.len() - 1 {
+        if y < 10 {
+            print!("0{y} ");
+        } else if y < 100 {
+            print!("{y} ");
+        } else {
+            print!("{y}");
+        }
         for x in 0..map.get(y).unwrap().len() {
             if let Some(tile) = get_tile(map, (x as i32, y as i32)) {
                 if start == tile.get_coord() {
-                    print!("\x1b[30;43m  ");
+                    print!("\x1b[30;43m   ");
                 } else if end == tile.get_coord() {
-                    print!("\x1b[30;41m  ");
+                    print!("\x1b[30;41m   ");
                 } else if path.contains(&tile.get_coord()) {
-                    print!("\x1b[30;42m  ");
+                    print!("\x1b[30;42m   ");
                 } else if tile.get_path() {
-                    print!("\x1b[30;44m  ");
+                    print!("\x1b[30;44m   ");
                 } else {
-                    print!("\x1b[30;47m  ");
+                    print!("\x1b[30;47m   ");
                 }
             } else {
                 println!("\nError: print_path");
